@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101e1d">
+<title>Avalon Tactics v0.5.2</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#101e1d;color:#e6dfbf;font-family:system-ui,-apple-system,sans-serif}
+body{display:grid;place-items:center}
+main{text-align:center;padding:24px}
+h1{font:32px Georgia,serif;color:#dbbd7f;margin:0 0 12px}
+p{color:#aab7ad;margin:6px 0}
+</style>
+</head>
+<body>
+<main id="loading"><h1>Avalon Tactics</h1><p>Loading v0.5.2…</p></main>
+<script type="module">
+const version='v0.5.2-r1';
+const paths=Array.from({length:16},(_,i)=>`./chunks/part-${String(i).padStart(2,'0')}.txt?${version}`);
+try{
+  const responses=await Promise.all(paths.map(p=>fetch(p)));
+  for(const r of responses) if(!r.ok) throw new Error(`HTTP ${r.status}: ${r.url}`);
+  const html=(await Promise.all(responses.map(r=>r.text()))).join('');
+  document.open();
+  document.write(html);
+  document.close();
+}catch(err){
+  document.getElementById('loading').innerHTML='<h1>Avalon Tactics</h1><p>Unable to load the game.</p><p>'+String(err)+'</p>';
+}
+</script>
+</body>
+</html>
