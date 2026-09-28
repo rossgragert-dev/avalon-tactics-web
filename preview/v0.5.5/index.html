@@ -16,12 +16,12 @@ p{color:#aab7ad;margin:6px 0}
 <body>
 <main id="loading"><h1>Avalon Tactics</h1><p>Loading v0.5.5 preview…</p></main>
 <script type="module">
-const version='v0.5.5-preview-1';
+const version='v0.5.5-preview-2';
 const count=20;
-const paths=Array.from({length:count},(_,i)=>);
+const paths=Array.from({length:count},(_,i)=>`./chunks/part-${String(i).padStart(2,'0')}.txt?${version}`);
 try{
   const responses=await Promise.all(paths.map(p=>fetch(p)));
-  for(const r of responses) if(!r.ok) throw new Error();
+  for(const r of responses) if(!r.ok) throw new Error(`HTTP ${r.status}: ${r.url}`);
   const html=(await Promise.all(responses.map(r=>r.text()))).join('');
   document.open();
   document.write(html);
