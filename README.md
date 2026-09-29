@@ -2,8 +2,12 @@
 
 Public static deployment for **Avalon Tactics**.
 
-Current release: **v0.5.6 — Hero Palette + Ascended Portrait Polish**
+Current release: **v0.5.7 — Hero Color Separation**
 
-The main GitHub Pages URL launches v0.5.6. The previous v0.5.5 deployment remains archived under `preview/v0.5.5/`.
+This update keeps the existing art and only adjusts hero palettes:
+- Robin: darker forest green
+- Marian: lighter green
+- Arthur: ivory/white + gold, no green
+- Tristan: mostly black wings with gray/silver tips
 
-The development source, tests, and QA material are maintained separately in the private `avalon-tactics` repository.
+The main GitHub Pages URL launches v0.5.7. Earlier builds remain archived under their versioned preview folders.
