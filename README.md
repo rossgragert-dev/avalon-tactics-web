@@ -2,8 +2,8 @@
 
 Public static deployment for **Avalon Tactics**.
 
-Current release: **v0.5.7 — Hero Color Separation**
+Current release: **v0.5.9 — Beyond the Silent Wood**
 
-This release uses targeted recoloring only: darker Robin green, lighter Marian green, Arthur in ivory/white + gold with no green, and Tristan with mostly black wings and gray/silver tips.
+This current build preserves the later v0.5.8/v0.5.9 mission and gameplay work while carrying forward the hero color separation pass: darker Robin green, lighter Marian green, Arthur in ivory/white + gold with no green, and Tristan with the black/gray powered palette.
 
-The main GitHub Pages URL launches v0.5.7. Earlier builds remain archived under their versioned preview folders.
+The main GitHub Pages URL launches v0.5.9. Earlier builds remain archived in their versioned preview folders.
