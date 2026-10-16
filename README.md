@@ -1,9 +1,12 @@
-# Avalon Tactics — Web Deployment
+# Avalon Tactics — Public Web Game
 
-Public static deployment for **Avalon Tactics**.
+**Current playable release: v0.7.2 — The Team Assembles**
 
-Current release: **v0.5.9 — Beyond the Silent Wood**
+Play: https://rossgragert-dev.github.io/avalon-tactics-web/
 
-This current build preserves the later v0.5.8/v0.5.9 mission and gameplay work while carrying forward the hero color separation pass: darker Robin green, lighter Marian green, Arthur in ivory/white + gold with no green, and Tristan with the black/gray powered palette.
+Mission 01 introduces Robin alone; Tristan joins Mission 02; Marian joins Mission 03.
+This release also includes the v0.7.1 distinct hero kits, v0.7.0 tactical enemy AI, universal stealth, End Turn, and the Grey Hunt.
 
-The main GitHub Pages URL launches v0.5.9. Earlier builds remain archived in their versioned preview folders.
+This repository contains **public compiled web builds only**. The authoritative private development source stays in `rossgragert-dev/avalon-tactics`.
+
+Previous public versions are preserved in their `preview/` directories.
