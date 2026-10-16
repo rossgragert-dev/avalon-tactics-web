@@ -1,0 +1,85 @@
+name: Publish Avalon Tactics Web Release
+
+on:
+  push:
+    branches: [main]
+    paths: [release/publish-v0.7.2.txt]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-avalon-public-web
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Fetch compiled build from verified private CI
+        run: |
+          set -euo pipefail
+          ARCHIVE_URL="$(cat release/publish-v0.7.2.txt)"
+          test "${ARCHIVE_URL#https://}" != "$ARCHIVE_URL"
+          curl -fL --retry 3 --retry-delay 2 "$ARCHIVE_URL" -o /tmp/avalon-v072.tar.gz
+          test "$(wc -c < /tmp/avalon-v072.tar.gz)" -gt 1000000
+          mkdir -p preview/v0.7.2
+          tar -tzf /tmp/avalon-v072.tar.gz | grep -q 'index.html'
+          tar -xzf /tmp/avalon-v072.tar.gz -C preview/v0.7.2
+          test -f preview/v0.7.2/index.html
+          test -d preview/v0.7.2/assets
+      - name: Switch public home page to the verified build
+        run: |
+          cat > index.html <<'PAGE'
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+          <meta name="theme-color" content="#101e1d">
+          <meta http-equiv="refresh" content="0; url=./preview/v0.7.2/">
+          <title>Avalon Tactics v0.7.2 — The Team Assembles</title>
+          <script>location.replace('./preview/v0.7.2/');</script>
+          </head>
+          <body style="background:#101e1d;color:#e6dfbf;font-family:system-ui;text-align:center;padding:2em">
+          <h1>Avalon Tactics v0.7.2</h1>
+          <p>Opening the latest playable version.</p>
+          <p><a href="./preview/v0.7.2/">Launch the game</a></p>
+          </body>
+          </html>
+          PAGE
+          cat > README.md <<'DOC'
+          # Avalon Tactics — Public Web Game
+
+          **Current playable release: v0.7.2 — The Team Assembles**
+
+          Play: https://rossgragert-dev.github.io/avalon-tactics-web/
+
+          Mission 01 introduces Robin alone; Tristan joins Mission 02; Marian joins Mission 03.
+          This release also includes the v0.7.1 distinct hero kits, v0.7.0 tactical enemy AI, universal stealth, End Turn, and the Grey Hunt.
+
+          This repository contains **public compiled web builds only**. The authoritative private development source stays in `rossgragert-dev/avalon-tactics`.
+
+          Previous public versions are preserved in their `preview/` directories.
+          DOC
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html README.md preview/v0.7.2
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Avalon Tactics v0.7.2 compiled web build"
+            git push origin HEAD:main
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: '.'
+      - uses: actions/deploy-pages@v4
+        id: deploy
