@@ -46,7 +46,7 @@ async function load(){
     // Limit concurrent requests on mobile. Browser caching handles repeat visits.
     const workers=Array.from({length:Math.min(5,manifest.count)},async(_,worker)=>{
       for(let i=worker;i<manifest.count;i+=5){
-        const path="./chunks/part-"+String(i).padStart(3,"0")+".txt";
+        const path="./chunks/part-"+String(i).padStart(3,"0")+".txt?rev="+encodeURIComponent(String(manifest.sha).slice(0,12));
         const chunk=await fetch(path);
         if(!chunk.ok)throw Error("Missing game asset "+(i+1)+"/"+manifest.count+" (HTTP "+chunk.status+")");
         chunks[i]=await chunk.text();
