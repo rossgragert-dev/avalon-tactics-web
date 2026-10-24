@@ -1,6 +1,7 @@
 {
   "version": "v0.8.6",
   "count": 22,
-  "sha": "8d3ecaf427bd10aba20c0a10b89b53a124d1ce55",
-  "bytes": 14202202
+  "sha": "d564c1f35feb4c4bd6a0b336be3683a14b7d374281d036809a1ae7f629b666d9",
+  "bytes": 14202439,
+  "hotfix": "ranged-facing-1"
 }

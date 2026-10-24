@@ -15,7 +15,11 @@
   (function () {
     "use strict";
     function detailText(reason) {
-      if (reason && reason.stack) return String(reason.stack);
+      if (reason && reason.stack) {
+        var message = reason.message ? String(reason.name || "Error") + ": " + String(reason.message) : "";
+        var stack = String(reason.stack);
+        return message && !stack.includes(message) ? message + "\n" + stack : stack;
+      }
       if (reason && reason.message) return String(reason.message);
       return String(reason || "Unknown browser error");
     }
