@@ -4,17 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#101e1d">
-  <meta name="description" content="Avalon Tactics v0.8.3 — Mobile Stability.">
+  <meta name="description" content="Avalon Tactics v0.8.6 — Special Abilities.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2212%22%20fill%3D%22%23142622%22%2F%3E%3Cpath%20d%3D%22M12%2045L8%2020L23%2030L32%2013L41%2030L56%2020L52%2045ZM14%2051H50%22%20fill%3D%22none%22%20stroke%3D%22%23d9bb7c%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" type="image/svg+xml">
   
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Avalon Tactics v0.8.3</title>
+  <title>Avalon Tactics v0.8.6</title>
   <style>#avalon-startup-error{box-sizing:border-box;color:#f0e9d7;background:#142622;border:1px solid #aa8c59;border-radius:12px;max-width:440px;margin:18vh auto 0;padding:24px;font:16px/1.5 system-ui,sans-serif}#avalon-runtime-error{z-index:99999;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));color:#f0e9d7;background:#142622;border:1px solid #aa8c59;border-radius:10px;max-width:480px;margin:auto;padding:14px;font:14px/1.4 system-ui,sans-serif;position:fixed;box-shadow:0 6px 30px #0009}#avalon-runtime-error button{font:inherit;color:#12201a;background:#d6bd8c;border:0;border-radius:6px;margin-left:10px;padding:8px 12px}#avalon-startup-error button{font:inherit;color:#12201a;cursor:pointer;background:#d6bd8c;border:0;border-radius:8px;padding:12px 18px}</style>
   <script>
   (function () {
     "use strict";
+    function detailText(reason) {
+      if (reason && reason.stack) return String(reason.stack);
+      if (reason && reason.message) return String(reason.message);
+      return String(reason || "Unknown browser error");
+    }
     function recover(reason) {
+      var report = detailText(reason);
       var mount = document.getElementById("app");
       if (!mount || mount.dataset.avalonCrashShown === "1") return;
       var active = mount.childElementCount > 0;
@@ -25,12 +31,31 @@
         notice.id = "avalon-runtime-error";
         notice.setAttribute("role", "alert");
         var message = document.createElement("span");
-        message.textContent = "A game error occurred. Progress already saved is safe.";
+        message.textContent = "The game encountered an error. Previously saved progress has not been cleared.";
+        var disclosure = document.createElement("details");
+        var summary = document.createElement("summary");
+        summary.textContent = "Show error details";
+        var details = document.createElement("pre");
+        details.textContent = report;
+        details.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;max-height:160px;overflow:auto;font:12px/1.35 monospace";
+        disclosure.append(summary, details);
+        var copy = document.createElement("button");
+        copy.type = "button";
+        copy.textContent = "Copy Error";
+        copy.addEventListener("click", function () {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(report).then(function () {
+              copy.textContent = "Copied";
+            }).catch(function () { disclosure.open = true; });
+          } else {
+            disclosure.open = true;
+          }
+        });
         var refresh = document.createElement("button");
         refresh.type = "button";
         refresh.textContent = "Reload";
         refresh.addEventListener("click", function () { location.reload(); });
-        notice.append(message, refresh);
+        notice.append(message, refresh, copy, disclosure);
         document.body.appendChild(notice);
         return;
       }
@@ -48,11 +73,23 @@
       retry.addEventListener("click", function () { location.reload(); });
       panel.append(title, msg, retry);
       mount.replaceChildren(panel);
-      console.error("Avalon Tactics startup failure:", reason);
+      console.error("Avalon Tactics startup failure:", report);
     }
     window.addEventListener("error", function (event) {
-      if (event.target !== window && event.target && (event.target.tagName === "IMG" || (event.target.tagName === "LINK" && event.target.rel === "manifest"))) return;
-      recover(event.message || "Resource could not load");
+      // A failed optional resource should not cover an otherwise playable battle.
+      // Script exceptions still reach the window and display the exact diagnostics.
+      if (event.target !== window) {
+        console.warn("Avalon Tactics resource load warning:", event.target);
+        return;
+      }
+      var message = event.message || "";
+      // Browser ResizeObserver loop warnings are nonfatal; Safari can emit these
+      // during rapid viewport changes even when rendering continues normally.
+      if (/ResizeObserver loop (limit exceeded|completed with undelivered notifications)/i.test(message)) {
+        console.warn("Avalon Tactics layout warning:", message);
+        return;
+      }
+      recover(event.error || message || "Unexpected script error");
     }, true);
     window.addEventListener("unhandledrejection", function (event) {
       recover(event.reason || "Unexpected error");
@@ -98,4 +135,4 @@
 `)}return r},getWrappedText:function(e){return e===void 0&&(e=this._text),this.style.syncFont(this.canvas,this.context),this.runWordWrap(e).split(this.splitRegExp)},setText:function(e){return!e&&e!==0&&(e=``),Array.isArray(e)&&(e=e.join(`
 `)),e!==this._text&&(this._text=e.toString(),this.updateText()),this},appendText:function(e,t){t===void 0&&(t=!0),!e&&e!==0&&(e=``),Array.isArray(e)&&(e=e.join(`
 `)),e=e.toString();var n=this._text.concat(t?`
-`+e:e);return n!==this._text&&(this._text=n,this.updateText()),this},setStyle:function(e){return this.style.setStyle(e)},setFont:function(e){return this.style.setFont(e)},setFontFamily:function(e){return this.style.setFontFamily(e)},setFontSize:function(e){return this.style.setFontSize(e)},setFontStyle:function(e){return this.style.setFontStyle(e)},setFixedSize:function(e,t){return this.style.setFixedSize(e,t)},setBackgroundColor:function(e){return this.style.setBackgroundColor(e)},setFill:function(e){return this.style.setFill(e)},setColor:function(e){return this.style.setColor(e)},setStroke:function(e,t){return this.style.setStroke(e,t)},setShadow:function(e,t,n,r,i,a){return this.style.setShadow(e,t,n,r,i,a)},setShadowOffset:function(e,t){return this.style.setShadowOffset(e,t)},setShadowColor:function(e){return this.style.setShadowColor(e)},setShadowBlur:function(e){return this.style.setShadowBlur(e)},setShadowStroke:function(e){return this.style.setShadowStroke(e)},setShadowFill:function(e){return this.style.setShadowFill(e)},setWordWrapWidth:function(e,t){return this.style.setWordWrapWidth(e,t)},setWordWrapCallback:function(e,t){return this.style.setWordWrapCallback(e,t)},setAlign:function(e){return this.style.setAlign(e)},setResolution:function(e){return this.style.setResolution(e)},setLineSpacing:function(e){return this.lineSpacing=e,this.updateText()},setLetterSpacing:function(e){return this.letterSpacing=e,this.updateText()},setPadding:function(e,t,n,r){if(typeof e==`object`){var i=e,a=u(i,`x`,null);a===null?(e=u(i,`left`,0),n=u(i,`right`,e)):(e=a,n=a);var o=u(i,`y`,null);o===null?(t=u(i,`top`,0),r=u(i,`bottom`,t)):(t=o,r=o)}else e===void 0&&(e=0),t===void 0&&(t=e),n===void 0&&(n=e),r===void 0&&(r=t);return this.padding.left=e,this.padding.top=t,this.padding.right=n,this.padding.bottom=r,this.updateText()},setMaxLines:function(e){return this.style.setMaxLines(e)},setRTL:function(e){e===void 0&&(e=!0);var t=this.style;return t.rtl===e?this:(t.rtl=e,e?(this.canvas.dir=`rtl`,this.context.direction=`rtl`,this.canvas.style.display=`none`,r(this.canvas,this.scene.sys.canvas)):(this.canvas.dir=`ltr`,this.context.direction=`ltr`),t.align===`left`?t.align=`right`:t.align===`right`&&(t.align=`left`),this)},updateText:function(){var e=this.canvas,t=this.context,n=this.style,r=n.resolution,i=n.metrics;n.syncFont(e,t);var a=this._text;(n.wordWrapWidth||n.wordWrapCallback)&&(a=this.runWordWrap(this._text));var o=a.split(this.splitRegExp),s=l(this,i,o),c=this.padding,u;n.fixedWidth===0?(this.width=s.width+c.left+c.right,u=s.width):(this.width=n.fixedWidth,u=this.width-c.left-c.right,u<s.width&&(u=s.width)),this.height=n.fixedHeight===0?s.height+c.top+c.bottom:n.fixedHeight;var d=this.width,f=this.height;this.updateDisplayOrigin(),d*=r,f*=r,d=Math.max(d,1),f=Math.max(f,1),e.width!==d||e.height!==f?(e.width=d,e.height=f,this.frame.setSize(d,f),this.frame.source.updateSize(d,f),this.frame.source.resolution=r,this.frame.updateUVs(),n.syncFont(e,t),n.rtl&&(t.direction=`rtl`)):t.clearRect(0,0,d,f),t.save(),t.scale(r,r),n.backgroundColor&&(t.fillStyle=n.backgroundColor,t.fillRect(0,0,d,f)),n.syncStyle(e,t),t.translate(c.left,c.top);for(var p,m,h=0;h<s.lines;h++){if(p=n.strokeThickness/2,m=n.strokeThickness/2+h*s.lineHeight+i.ascent,h>0&&(m+=s.lineSpacing*h),n.rtl)p=d-p-c.left-c.right;else if(n.align===`right`)p+=u-s.lineWidths[h];else if(n.align===`center`)p+=(u-s.lineWidths[h])/2;else if(n.align===`justify`&&s.lineWidths[h]/s.width>=.85){var g=s.width-s.lineWidths[h],_=t.measureText(` `).width,v=o[h].trim(),y=v.split(` `);g+=(o[h].length-v.length)*_;for(var b=Math.floor(g/_),x=0;b>0;)y[x]+=` `,x=(x+1)%(y.length-1||1),--b;o[h]=y.join(` `)}this.autoRound&&(p=Math.round(p),m=Math.round(m));var S=this.letterSpacing;if(n.strokeThickness&&S===0&&(n.syncShadow(t,n.shadowStroke),t.strokeText(o[h],p,m)),n.color){if(n.syncShadow(t,n.shadowFill),S!==0)for(var C=0,w=o[h].split(``),T=0;T<w.length;T++)n.strokeThickness&&(n.syncShadow(t,n.shadowStroke),t.strokeText(w[T],p+C,m),n.syncShadow(t,n.shadowFill)),t.fillText(w[T],p+C,m),C+=t.measureText(w[T]).width+S;else t.fillText(o[h],p,m)}}t.restore(),this.renderer&&this.renderer.gl&&(this.frame.source.glTexture=this.renderer.canvasToTexture(e,this.frame.source.glTexture,!0));var E=this.input;return E&&!E.customHitArea&&(E.hitArea.width=this.width,E.hitArea.height=this.height),this},getTextMetrics:function(){return this.style.getTextMetrics()},text:{get:function(){return this._text},set:function(e){this.setText(e)}},toJSON:function(){var e=s.ToJSON(this);return e.data={autoRound:this.autoRound,text:this._text,style:this.style.toJSON(),padding:{left:this.padding.left,right:this.padding.right,top:this.padding.top,bottom:this.padding.bottom}},e},preDestroy:function(){d(this.canvas),i.remove(this.canvas);var e=this.texture;e&&e.destroy()}})},79724(e){e.exports=function(e,t,n,r){t.width!==0&&t.height!==0&&(n.addToRenderList(t),e.batchSprite(t,t.frame,n,r))}},71259(e,t,n){var r=n(25305),i=n(44603),a=n(23568),o=n(50171);i.register(`text`,function(e,t){e===void 0&&(e={});var n=a(e,`text`,``),i=a(e,`style`,null),s=a(e,`padding`,null);s!==null&&(i.padding=s);var c=new o(this.scene,0,0,n,i);return t!==void 0&&(e.add=t),r(this.scene,c,e),c.autoRound=a(e,`autoRound`,!0),c.resolution=a(e,`resolution`,1),c})},68005(e,t,n){var r=n(50171);n(39429).register(`text`,function(e,t,n,i){return this.displayList.add(new r(this.scene,e,t,n,i))})},61771(e,t,n){var r=n(29747),i=r,a=r;i=n(34397),a=n(79724),e.exports={renderWebGL:i,renderCanvas:a}},35762(e,t,n){var r=n(83419),i=n(23568),a=n(35154),o=n(79557),s={fontFamily:[`fontFamily`,`Courier`],fontSize:[`fontSize`,`16px`],fontStyle:[`fontStyle`,``],backgroundColor:[`backgroundColor`,null],color:[`color`,`#fff`],stroke:[`stroke`,`#fff`],strokeThickness:[`strokeThickness`,0],shadowOffsetX:[`shadow.offsetX`,0],shadowOffsetY:[`shadow.offsetY`,0],shadowColor:[`shadow.color`,`#000`],shadowBlur:[`shadow.blur`,0],shadowStroke:[`shadow.stroke`,!1],shadowFill:[`shadow.fill`,!1],align:[`align`,`left`],maxLines:[`maxLines`,0],fixedWidth:[`fixedWidth`,0],fixedHeight:[`fixedHeight`,0],resolution:[`resolution`,0],rtl:[`rtl`,!1],testString:[`testString`,`|MÃ‰qgy`],baselineX:[`baselineX`,1.2],baselineY:[`baselineY`,1.4],wordWrapWidth:[`wordWrap.width`,null],wordWrapCallback:[`wordWrap.callback`,null],wordWrapCallbackScope:[`wordWrap.callbackScope`,null],wordWrapUseAdvanced:[`wordWrap.useAdvancedWrap`,!1]};e.exports=new r({initialize:function(e,t){this.parent=e,this.fontFamily,this.fontSize,this.fontStyle,this.backgroundColor,this.color,this.stroke,this.strokeThickness,this.shadowOffsetX,this.shadowOffsetY,this.shadowColor,this.shadowBlur,this.shadowStroke,this.shadowFill,this.align,this.maxLines,this.fixedWidth,this.fixedHeight,this.resolution,this.rtl,this.testString,this.baselineX,this.baselineY,this.wordWrapWidth,this.wordWrapCallback,this.wordWrapCallbackScope,this.wordWrapUseAdvanced,this._font,this.setStyle(t,!1,!0)},setStyl
+`+e:e);return n!==this._text&&(this._text=n,this.updateText()),this},setStyle:function(e){return this.style.setStyle(e)},setFont:function(e){return this.style.setFont(e)},setFontFamily:function(e){return this.style.setFontFamily(e)},setFontSize:function(e){return this.style.setFontSize(e)},setFontStyle:function(e){return this.style.setFontStyle(e)},setFixedSize:function(e,t){return this.style.setFixedSize(e,t)},setBackgroundColor:function(e){return this.style.setBackgroundColor(e)},setFill:function(e){return this.style.setFill(e)},setColor:function(e){return this.style.setColor(e)},setStroke:function(e,t){return this.style.setStroke(e,t)},setShadow:function(e,t,n,r,i,a){return this.style.setShadow(e,t,n,r,i,a)},setShadowOffset:function(e,t){return this.style.setShadowOffset(e,t)},setShadowColor:function(e){return this.style.setShadowColor(e)},setShadowBlur:function(e){return this.style.setShadowBlur(e)},setShadowStroke:function(e){return this.style.setShadowStroke(e)},setShadowFill:function(e){return this.style.setShadowFill(e)},setWordWrapWidth:function(e,t){return this.style.setWordWrapWidth(e,t)},setWordWrapCallback:function(e,t){return this.style.setWordWrapCallback(e,t)},setAlign:function(e){return this.style.setAlign(e)},setResolution:function(e){return this.style.setResolution(e)},setLineSpacing:function(e){return this.lineSpacing=e,this.updateText()},setLetterSpacing:function(e){return this.letterSpacing=e,this.updateText()},setPadding:function(e,t,n,r){if(typeof e==`object`){var i=e,a=u(i,`x`,null);a===null?(e=u(i,`left`,0),n=u(i,`right`,e)):(e=a,n=a);var o=u(i,`y`,null);o===null?(t=u(i,`top`,0),r=u(i,`bottom`,t)):(t=o,r=o)}else e===void 0&&(e=0),t===void 0&&(t=e),n===void 0&&(n=e),r===void 0&&(r=t);return this.padding.left=e,this.padding.top=t,this.padding.right=n,this.padding.bottom=r,this.updateText()},setMaxLines:function(e){return this.style.setMaxLines(e)},setRTL:function(e){e===void 0&&(e=!0);var t=this.style;return t.rtl===e?this:(t.rtl=e,e?(this.canvas.dir=`rtl`,this.context.direction=`rtl`,this.canvas.style.display=`none`,r(this.canvas,this.scene.sys.canvas)):(this.canvas.dir=`ltr`,this.context.direction=`ltr`),t.align===`left`?t.align=`right`:t.align===`right`&&(t.align=`left`),this)},updateText:function(){var e=this.canvas,t=this.context,n=this.style,r=n.resolution,i=n.metrics;n.syncFont(e,t);var a=this._text;(n.wordWrapWidth||n.wordWrapCallback)&&(a=this.runWordWrap(this._text));var o=a.split(this.splitRegExp),s=l(this,i,o),c=this.padding,u;n.fixedWidth===0?(this.width=s.width+c.left+c.right,u=s.width):(this.width=n.fixedWidth,u=this.width-c.left-c.right,u<s.width&&(u=s.width)),this.height=n.fixedHeight===0?s.height+c.top+c.bottom:n.fixedHeight;var d=this.width,f=this.height;this.updateDisplayOrigin(),d*=r,f*=r,d=Math.max(d,1),f=Math.max(f,1),e.width!==d||e.height!==f?(e.width=d,e.height=f,this.frame.setSize(d,f),this.frame.source.updateSize(d,f),this.frame.source.resolution=r,this.frame.updateUVs(),n.syncFont(e,t),n.rtl&&(t.direction=`rtl`)):t.clearRect(0,0,d,f),t.save(),t.scale(r,r),n.backgroundColor&&(t.fillStyle=n.backgroundColor,t.fillRect(0,0,d,f)),n.syncStyle(e,t),t.translate(c.left,c.top);for(var p,m,h=0;h<s.lines;h++){if(p=n.strokeThickness/2,m=n.strokeThickness/2+h*s.lineHeight+i.ascent,h>0&&(m+=s.lineSpacing*h),n.rtl)p=d-p-c.left-c.right;else if(n.align===`right`)p+=u-s.lineWidths[h];else if(n.align===`center`)p+=(u-s.lineWidths[h])/2;else if(n.align===`justify`&&s.lineWidths[h]/s.width>=.85){var g=s.width-s.lineWidths[h],_=t.measureText(` `).width,v=o[h].trim(),y=v.split(` `);g+=(o[h].length-v.length)*_;for(var b=Math.floor(g/_),x=0;b>0;)y[x]+=` `,x=(x+1)%(y.length-1||1),--b;o[h]=y.join(` `)}this.autoRound&&(p=Math.round(p),m=Math.round(m));var S=this.letterSpacing;if(n.strokeThickness&&S===0&&(n.syncShadow(t,n.shadowStroke),t.strokeText(o[h],p,m)),n.color){if(n.syncShadow(t,n.shadowFill),S!==0)for(var C=0,w=o[h].split(``),T=0;T<w.length;T++)n.strokeThickness&&(n.syncShadow(t,n.shadowStroke),t.strokeText(w[T],p+C,m),n.syncShadow(t,n.shadowFill)),t.fillText(w[T],p+C,m),C+=t.measureText(w[T]).width+S;else t.fillText(o[h],p,m)}}t.restore(),this.renderer&&this.renderer.gl&&(this.frame.source.glTexture=this.renderer.canvasToTexture(e,this.frame.source.glTexture,!0));var E=this.input;return E&&!E.customHitArea&&(E.hitArea.width=this.width,E.hitArea.height=this.height),this},getTextMetrics:function(){return this.style.getTextMetrics()},text:{get:function(){return this._text},set:function(e){this.setText(e)}},toJSON:function(){var e=s.ToJSON(this);return e.data={autoRound:this.autoRound,text:this._text,style:this.style.toJSON(),padding:{left:this.padding.left,right:this.padding.right,top:this.padding.top,bottom:this.padding.bottom}},e},preDestroy:function(){d(this.canvas),i.remove(this.canvas);var e=this.texture;e&&e.destroy()}})},79724(e){e.exports=function(e,t,n,r){t.width!==0&&t.height!==0&&(n.addToRenderList(t),e.batchSprite(t,t.frame,n,r))}},71259(e,t,n){var r=n(25305),i=n(44603),a=n(23568),o=n(50171);i.register(`text`,function(e,t){e===void 0&&(e={});var n=a(e,`text`,``),i=a(e,`style`,null),s=a(e,`padding`,null);s!==null&&(i.padding=s);var c=new o(this.scene,0,0,n,i)
