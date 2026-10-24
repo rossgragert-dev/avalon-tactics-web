@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101e1d">
+<title>Avalon Tactics v0.8.10 — Play in Browser</title>
+<style>
+html,body{width:100%;min-height:100%;margin:0;background:#101e1d;color:#e6dfbf;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif}
+body{display:grid;place-items:center}
+main{box-sizing:border-box;max-width:460px;width:100%;padding:28px;text-align:center}
+h1{font:normal 34px Georgia,serif;margin:0 0 4px;color:#e4c584}
+h2{margin:0 0 24px;font-size:17px;color:#bad5c7;font-weight:500}
+p{line-height:1.5;color:#c1cfc8}
+progress{width:100%;height:15px;accent-color:#dabb79}
+button,a{color:#ffe4ae}
+button{border:1px solid #c5a570;border-radius:8px;background:#263f32;padding:12px 20px;min-height:48px;font-size:16px}
+small{color:#91aca0;display:block;margin-top:16px}
+</style>
+</head>
+<body>
+<main id="loading">
+<h1>Avalon Tactics</h1><h2>v0.8.10 · The Excalibur Menu Overhaul</h2>
+<p id="progressText" role="status" aria-live="polite">Preparing your browser test build…</p>
+<progress id="progress" max="100" value="0" aria-label="Game loading progress"></progress>
+<small>First visit loads the game files; your browser can cache them for future visits.</small>
+<button id="retry" hidden>Retry loading</button>
+</main>
+<script type="module">
+const version="v0.8.10";
+const loading=document.getElementById("loading");
+const progress=document.getElementById("progress");
+const progressText=document.getElementById("progressText");
+const retry=document.getElementById("retry");
+async function load(){
+  retry.hidden=true;
+  progress.value=0;
+  try{
+    const response=await fetch("./manifest.json",{cache:"no-cache"});
+    if(!response.ok)throw Error("Could not read build manifest (HTTP "+response.status+")");
+    const manifest=await response.json();
+    if(manifest.version!==version||!Number.isInteger(manifest.count)||manifest.count<1||manifest.count>100)
+      throw Error("Invalid build manifest.");
+    const chunks=new Array(manifest.count);
+    let completed=0;
+    // Limit concurrent requests on mobile. Browser caching handles repeat visits.
+    const workers=Array.from({length:Math.min(5,manifest.count)},async(_,worker)=>{
+      for(let i=worker;i<manifest.count;i+=5){
+        const path="./chunks/part-"+String(i).padStart(3,"0")+".txt?rev="+encodeURIComponent(String(manifest.sha).slice(0,12));
+        const chunk=await fetch(path);
+        if(!chunk.ok)throw Error("Missing game asset "+(i+1)+"/"+manifest.count+" (HTTP "+chunk.status+")");
+        chunks[i]=await chunk.text();
+        completed++;
+        progress.value=Math.round(completed/manifest.count*100);
+        progressText.textContent="Loading game assets… "+completed+" of "+manifest.count;
+      }
+    });
+    await Promise.all(workers);
+    const html=chunks.join("");
+    if(html.length<5000000||!html.includes("<!doctype")&&!html.includes("<!DOCTYPE"))
+      throw Error("The game package is incomplete.");
+    document.open();document.write(html);document.close();
+  }catch(error){
+    progressText.textContent="Could not load this build: "+(error instanceof Error?error.message:String(error));
+    retry.hidden=false;
+  }
+}
+retry.addEventListener("click",load);
+load();
+</script>
+</body>
+</html>
