@@ -15,6 +15,8 @@ Previous public versions are preserved in their `preview/` directories.
 
 **Permanent latest test URL:** https://rossgragert-dev.github.io/avalon-tactics-web/preview/latest/
 
+**v0.9.1 — Oaths and Synergies development preview (isolated, not yet promoted):** https://rossgragert-dev.github.io/avalon-tactics-web/preview/v0.9.1/
+
 **v0.9.0 — Kingdom at War development preview (isolated, not yet promoted):** https://rossgragert-dev.github.io/avalon-tactics-web/preview/v0.9.0/
 
 **Versioned v0.8.1 URL:** https://rossgragert-dev.github.io/avalon-tactics-web/preview/v0.8.1/
