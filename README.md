@@ -15,6 +15,8 @@ Previous public versions are preserved in their `preview/` directories.
 
 **Permanent latest test URL:** https://rossgragert-dev.github.io/avalon-tactics-web/preview/latest/
 
+**v0.9.0 — Kingdom at War development preview (isolated, not yet promoted):** https://rossgragert-dev.github.io/avalon-tactics-web/preview/v0.9.0/
+
 **Versioned v0.8.1 URL:** https://rossgragert-dev.github.io/avalon-tactics-web/preview/v0.8.1/
 
 The test page serves a compiled single-file game through ordinary HTTPS browser requests. Open in Safari, then optionally use Share → Add to Home Screen. New tested versions can update the permanent `preview/latest/` bookmark without replacing the public v0.7.2 home page. Mobile Safari may re-fetch some assets on a fresh visit depending on cache limits, but does not require a manual file download.
